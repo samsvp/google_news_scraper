@@ -39,7 +39,10 @@ def get_article_title(el: element.Tag) -> str:
     """
     Get the article title in the element "el"
     """
-    title = el.find("h3").text # google news titles are inside the h3 tag
+    try:
+        title = el.find("h3").text # google news titles are inside the h3 tag
+    except:
+        title = ""
     return title
 
 def get_articles_title(el: element.Tag) -> List[str]:
@@ -53,7 +56,10 @@ def get_articles(el: element.Tag, class_id=None) -> element.ResultSet:
     """
     Get all articles in the element "el"
     """
-    articles = el.find_all("article") if class_id is None else el.find_all("article", {"class" : class_id})
+    try:
+        articles = el.find_all("article") if class_id is None else el.find_all("article", {"class" : class_id})
+    except:
+        articles = ""
     return articles
 
 def get_link(el: element.Tag, class_id=None) -> str:
@@ -94,16 +100,16 @@ def get_source(el: element.Tag) -> str:
     source = a_tags[-1].text
     return source
 
-def get_news(soup: BeautifulSoup, class_id=None) -> Dict[str, str]:
+def get_news(soup: BeautifulSoup, class_id=None, n=10) -> Dict[str, str]:
     """
     Get all news from the given webpage with its metadata
     """
-    articles = get_articles(soup)
-    link_titles = { get_article_title(article) : {
+    articles = get_articles(soup)[:n]
+    news = { get_article_title(article) : {
                         "link" : get_link(article), "data" : get_date(article),
                         "descrição" : get_description(article), "fonte" : get_source(article)
-                         } for article in articles}
-    return link_titles
+                         } for article in articles if get_article_title(article)}
+    return news
 
 def get_news_summary(link: str) -> List[str]:
     """
@@ -117,9 +123,11 @@ def get_news_summary(link: str) -> List[str]:
     summary = summarizer.get_summary(articles[0].text, 7) if articles else ""
     return summary
 
-url = create_url("tv por assinatura")
-soup = get_page(url)
-link_titles = get_news(soup)
-for title in link_titles:
-    s = get_news_summary(link_titles[title]["link"])
-    print(title, "\n", s, "\n\n")
+def format_news(news: Dict[str,Dict[str,str]]) -> str:
+    texts = []
+    for title in news:
+        text = title + "\n\n"
+        text += "\n".join([f"{info}: {news[title][info]}" for info in news[title]])
+        text += f"\nsumario: {get_news_summary(news[title]['link'])}"
+        texts.append(text)
+    return "\n\n\n\n".join(texts)
