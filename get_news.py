@@ -100,15 +100,25 @@ def get_source(el: element.Tag) -> str:
     source = a_tags[-1].text
     return source
 
+def get_images(soup: BeautifulSoup) -> List[str]:
+    """
+    Get the news image
+    """
+    figures = soup.find_all("figure")
+    imgs = [fig.find("img").get("src") for fig in figures] 
+    return imgs
+
 def get_news(soup: BeautifulSoup, class_id=None, n=10) -> Dict[str, str]:
     """
     Get all news from the given webpage with its metadata
     """
     articles = get_articles(soup)[:n]
+    imgs = get_images(soup)[:n]
     news = { get_article_title(article) : {
                         "link" : get_link(article), "data" : get_date(article),
-                        "descrição" : get_description(article), "fonte" : get_source(article)
-                         } for article in articles if get_article_title(article)}
+                        "descrição" : get_description(article), "fonte" : get_source(article),
+                        "img": imgs[i] } 
+                        for i,article in enumerate(articles) if get_article_title(article)}
     return news
 
 def get_news_summary(link: str) -> List[str]:

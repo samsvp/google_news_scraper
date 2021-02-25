@@ -5,6 +5,7 @@ import json
 import smtplib
 import platform
 import requests
+from email.mime.text import MIMEText
 from email.message import EmailMessage
 
 
@@ -53,8 +54,11 @@ def _send_email(address, to_email, subject, body, smtp):
 
     smtp.send_message(msg)
 
-def send_mail(address, password, to_emails, subject, body):
+def send_mail(address, password, to_emails, subject, raw_body, is_html=False):
     if type(to_emails) == str: to_emails = [to_emails]
+    
+    body = MIMEText(raw_body, 'html') if is_html else raw_body
+    
     with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
         smtp.login(address, password)
         for to_email in to_emails:
