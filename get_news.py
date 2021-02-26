@@ -2,6 +2,8 @@
 """
 Google news parser
 """
+import os
+import json
 import requests
 import summarizer
 from bs4 import BeautifulSoup, element
@@ -9,12 +11,19 @@ from urllib.parse import urljoin
 from typing import List, Dict
  
 
-# oi topic url
-oi_url = "https://news.google.com/topics/CAAqJggKIiBDQkFTRWdvSkwyMHZNRFV4ZGpGakVnVndkQzFDVWlnQVAB?hl=pt-BR&gl=BR&ceid=BR%3Apt-419"
-oi_class = "VDXfz"
-
 news_url = "https://news.google.com/"
 
+topics_url = {
+    "oi": "https://news.google.com/topics/CAAqJggKIiBDQkFTRWdvSkwyMHZNRFV4ZGpGakVnVndkQzFDVWlnQVAB?hl=pt-BR&gl=BR&ceid=BR%3Apt-419"
+}
+
+history_file = "history.json"
+try:
+    with open(history_file, "r", encoding='utf-8') as f:
+        history = json.load(f)
+except FileNotFoundError:
+    history = {}
+    
 def create_url(q: str) -> str:
     """
     Creates a vali url for a given query
@@ -105,21 +114,39 @@ def get_images(soup: BeautifulSoup) -> List[str]:
     Get the news image
     """
     figures = soup.find_all("figure")
-    imgs = [fig.find("img").get("src") for fig in figures] 
+    imgs = {get_article_title(fig.parent.parent) : fig.find("img").get("src") for fig in figures}
     return imgs
 
-def get_news(soup: BeautifulSoup, class_id=None, n=10) -> Dict[str, str]:
+def sort_news(news: Dict[str, Dict[str, str]]) -> Dict[str, Dict[str, str]]:
+    """
+    Returns the news sorted by date
+    """
+    def _sorted(title: str):
+        date = news[title]["data"]
+        if "horas" in date: return int(date.split(" ")[0])
+        elif "ontem" in date: return 24
+        elif "dias" in date: return 24 + int(date.split(" ")[0])
+        else: return 1000
+
+    return dict(sorted(news.items(), key=lambda item: _sorted(item[0])))
+
+def get_news(soup: BeautifulSoup, class_id=None, n=10, sort=True) -> Dict[str, str]:
     """
     Get all news from the given webpage with its metadata
     """
     articles = get_articles(soup)[:n]
-    imgs = get_images(soup)[:n]
+    imgs = get_images(soup)
     news = { get_article_title(article) : {
                         "link" : get_link(article), "data" : get_date(article),
                         "descrição" : get_description(article), "fonte" : get_source(article),
-                        "img": imgs[i] } 
-                        for i,article in enumerate(articles) if get_article_title(article)}
-    return news
+                        "img": imgs.get(get_article_title(article), "")} 
+                        for article in articles if get_article_title(article) and get_article_title(article) not in history}
+    
+    with open(history_file, "w", encoding='utf-8') as f:
+        history.update(news)
+        json.dump(history, f, ensure_ascii=False, indent=True)
+
+    return sort_news(news) if sort else news
 
 def get_news_summary(link: str) -> List[str]:
     """
