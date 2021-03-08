@@ -33,7 +33,7 @@ def check_login(address, password):
         result = False
     return result
 
-def create_body(topic, n=10):
+def create_body(topic, n=10) -> str:
     print(f"processing topic: {topic}")
     url = get_news.create_url(topic) if topic.lower() not in get_news.topics_url else get_news.topics_url[topic.lower()]
     soup = get_news.get_page(url)
@@ -44,22 +44,11 @@ def create_body(topic, n=10):
 
 def create_html_body(title: str, link: str, date: str, description: str, source: str, img: str) -> str:
     template = f"""
-        <html>
-        <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            .card-horizontal {{
-            display: flex;
-            flex: 1 1 auto;
-        }}
-        </style>
-        </head>
-        <body>
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12 mt-3">
                     <div class="card">
-                        <div class="card-horizontal">
+                        <div>
                             <div class="card-body">
                                 <img class="" src="{img}" alt="Card image cap" style="float: left;border: 10px solid rgba(255,255,255,0);">                            
                                 <a href="{link}" style="float: center;border: 1px solid rgba(255,255,255,0);">
@@ -73,9 +62,6 @@ def create_html_body(title: str, link: str, date: str, description: str, source:
                 </div>
             </div>
         </div>
-
-        </body>
-        </html>
     """
     return template
 
@@ -84,6 +70,9 @@ def create_htmls(topic, n=10):
     url = get_news.create_url(topic) if topic.lower() not in get_news.topics_url else get_news.topics_url[topic.lower()]
     soup = get_news.get_page(url)
     news = get_news.get_news(soup, n=n)
+    
+    if not news: return ""
+
     htmls = [create_html_body(title, news[title]["link"], news[title]["data"],
              news[title]["descrição"], news[title]["fonte"], news[title]["img"])
              for title in news]

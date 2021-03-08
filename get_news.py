@@ -164,7 +164,7 @@ def format_news(news: Dict[str,Dict[str,str]]) -> str:
     texts = []
     for title in news:
         text = title + "\n\n"
-        text += "\n".join([f"{info}: {news[title][info]}" for info in news[title]])
-        text += f"\nsumario: {get_news_summary(news[title]['link'])}"
+        text += "\n".join([f"{info}: {news[title][info]}" for info in news[title] if info != "img"])
+        #text += f"\nsumario: {get_news_summary(news[title]['link'])}"
         texts.append(text)
     return "\n\n\n\n".join(texts)
