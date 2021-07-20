@@ -98,7 +98,7 @@ def get_description(el: element.Tag) -> str:
     """
     Gets the news description
     """
-    resume = el.find("span", {"class" : "xBbh9"}).text
+    resume = el.find("a", {"class" : "RZIKme"}).text
     return resume
 
 def get_source(el: element.Tag) -> str:
