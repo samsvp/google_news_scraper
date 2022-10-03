@@ -22,7 +22,9 @@ def get_word_frequency(text: str) -> Dict[str, float]:
     word_frequencies = dict(Counter([
         word for word in nltk.word_tokenize(text) if word not in stopwords
     ]))
-    
+    #empty dict
+    if not word_frequencies: return {}
+
     maximum_frequncy = max(word_frequencies.values())
     normalized_word_frequencies = {word : word_frequencies[word]/maximum_frequncy for word in word_frequencies}
     return normalized_word_frequencies
