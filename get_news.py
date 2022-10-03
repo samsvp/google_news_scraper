@@ -75,7 +75,7 @@ def get_articles(el: element.Tag, class_id=None) -> element.ResultSet:
     try:
         articles = el.find_all("article") if class_id is None else el.find_all("article", {"class" : class_id})
     except:
-        articles = ""
+        articles = []
     return articles
 
 
@@ -188,10 +188,10 @@ def add_summary(news: Dict[str, str], add_ngrams=True, n=3, top_n=10) -> Dict[st
         # and script tags
         page = get_page(news[title]["link"])
         articles = get_articles(page)
+        if not articles: continue
+        
         articles.sort(key=lambda a : len(a), reverse=True)
         
-        if not articles: continue
-
         article = get_article_text(articles[0])
         summary = summarizer.get_summary(article, 7) if article else ""
         news[title]["summary"] = summary
