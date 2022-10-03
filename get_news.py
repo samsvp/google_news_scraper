@@ -169,13 +169,20 @@ def get_news(soup: BeautifulSoup, class_id=None, n=10, sort=True, save_history=T
     return sort_news(news) if sort else news
 
 
-def add_summary(news: Dict[str, str], add_ngrams=True, n=3, top_n=10) -> Dict[str, Dict[str, Any]]:
-    """Adds news summary. Modifies the original dict. Can add
-    the 'top_n' ngrams count to the news dict. Modifies the original dict"""
+def get_article_text(article: element, ignore_non_p=True) -> str:
+    """Returns the article text. If ignore_non_p is true then any
+    text outside a `p` tag will be ignored"""
     h = html2text.HTML2Text()
     h.ignore_links = True
     h.ignore_images = True
 
+    p = "\n".join([str(p) for p in article.findAll("p")])
+    return h.handle(p)
+
+
+def add_summary(news: Dict[str, str], add_ngrams=True, n=3, top_n=10) -> Dict[str, Dict[str, Any]]:
+    """Adds news summary. Modifies the original dict. Can add
+    the 'top_n' ngrams count to the news dict. Modifies the original dict"""
     for title in news:
         # gets the text inside an html string. Ignores links urls
         # and script tags
@@ -185,7 +192,7 @@ def add_summary(news: Dict[str, str], add_ngrams=True, n=3, top_n=10) -> Dict[st
         
         if not articles: continue
 
-        article = h.handle(str(articles[0]))
+        article = get_article_text(articles[0])
         summary = summarizer.get_summary(article, 7) if article else ""
         news[title]["summary"] = summary
         
@@ -193,7 +200,6 @@ def add_summary(news: Dict[str, str], add_ngrams=True, n=3, top_n=10) -> Dict[st
             ngrams_freq = [(k, v) for k, v in
                 summarizer.get_ngrams_freq(summary, n).items()]
             ngrams_freq.sort(key=lambda x: x[1], reverse=True)
-            print(ngrams_freq, "\n")
             news[title]["ngram"] = ngrams_freq[:top_n]
 
     return news
@@ -226,11 +232,8 @@ def get_news_summary(link: str) -> List[str]:
     if not articles: return ""
 
     articles.sort(key=lambda a : len(a), reverse=True)
-    # gets the text inside an html string. Ignores links urls
-    # and script tags
-    h = html2text.HTML2Text()
-    h.ignore_links = True
-    article = h.handle(str(articles[0]))
+    # gets the text inside an html string.
+    article = get_article_text(articles[0])
     
     summary = summarizer.get_summary(article, 7) if article else ""
     return summary
