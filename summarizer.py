@@ -18,6 +18,7 @@ def preprocess(_text: str) -> str:
 
 
 def get_word_frequency(text: str) -> Dict[str, float]:
+    """Returns the word frequency inside the given text"""
     word_frequencies = dict(Counter([
         word for word in nltk.word_tokenize(text) if word not in stopwords
     ]))
@@ -28,6 +29,8 @@ def get_word_frequency(text: str) -> Dict[str, float]:
 
 
 def get_senteces_score(text: str, word_frequencies: Dict[str, float]) -> Dict[str, float]:
+    """Returns the sentence score given the word frequencies. A sequence score
+    is the sum of the frequency of the words contained in the sentence"""
     sentence_list = nltk.sent_tokenize(text)
     sentence_scores = {sent : sum([word_frequencies.get(word, 0)
                             for word in nltk.word_tokenize(sent.lower())]) 
@@ -35,7 +38,8 @@ def get_senteces_score(text: str, word_frequencies: Dict[str, float]) -> Dict[st
     return sentence_scores
 
 
-def get_summary(_text: str, n=10):
+def get_summary(_text: str, n=10) -> str:
+    """Summarizes the given text into n sentences"""
     text = preprocess(_text)
     word_frequencies = get_word_frequency(text)
     sentence_scores = get_senteces_score(text, word_frequencies)
@@ -46,7 +50,8 @@ def get_summary(_text: str, n=10):
 
 
 def get_ngrams_freq(_text: str, n: int) -> Dict[Any, int]:
-    """"""
+    """Returns the frequencies of the ngrams inside the given text. Stop
+    words are removed"""
     # remove punctuation
     text = _text.translate(str.maketrans('', '', string.punctuation))
     # count ngrams
