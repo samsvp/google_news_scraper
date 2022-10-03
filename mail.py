@@ -16,10 +16,12 @@ def f(non_f_str: str):
     """
     return eval(f'f"""{non_f_str}"""')
 
+
 def get_file_path(filename):
     path = os.path.realpath(__file__) + "/"
     if platform.system() == "Windows": path.replace("\\", "/")
     return os.path.join(path, filename)
+
 
 def check_login(address, password):
     """
@@ -33,14 +35,17 @@ def check_login(address, password):
         result = False
     return result
 
+
 def create_body(topic, n=10) -> str:
     print(f"processing topic: {topic}")
-    url = get_news.create_url(topic) if topic.lower() not in get_news.topics_url else get_news.topics_url[topic.lower()]
+    url = get_news.create_url(topic) if topic.lower() not in get_news.topics_url \
+        else get_news.topics_url[topic.lower()]
     soup = get_news.get_page(url)
     news = get_news.get_news(soup, n=n)
     body = get_news.format_news(news)
     print(f"topic {topic} processed\n")
     return body
+
 
 def create_html_body(title: str, link: str, date: str, description: str, source: str, img: str) -> str:
     template = f"""
@@ -65,6 +70,7 @@ def create_html_body(title: str, link: str, date: str, description: str, source:
     """
     return template
 
+
 def create_htmls(topic, n=10):
     print(f"processing topic: {topic}")
     url = get_news.create_url(topic) if topic.lower() not in get_news.topics_url else get_news.topics_url[topic.lower()]
@@ -77,6 +83,7 @@ def create_htmls(topic, n=10):
              news[title]["descrição"], news[title]["fonte"], news[title]["img"])
              for title in news]
     return "\n\n\n".join(htmls)
+
 
 def _send_email(address, to_email, subject, body, smtp):
     """
@@ -99,6 +106,7 @@ def _send_email(address, to_email, subject, body, smtp):
     msg.set_content(body)
 
     smtp.send_message(msg)
+
 
 def send_mail(address, password, to_emails, subject, raw_body, is_html=False):
     if type(to_emails) == str: to_emails = [to_emails]
